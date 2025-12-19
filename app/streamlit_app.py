@@ -329,8 +329,59 @@ def display_results(result):
 
     st.markdown("---")
 
+    # Personalized Patient Interpretation
+    score = result['prediction']
+    st.subheader("Patient-Specific Assessment")
+
+    # Generate personalized interpretation based on exact score
+    if score < 7:
+        interpretation = f"""
+        **Score: {score:.1f}** - This score is below the typical UPDRS range, which may indicate
+        very minimal motor symptoms or measurement variability. Consider verifying the voice measurements
+        and conducting a comprehensive clinical examination for accurate assessment.
+        """
+    elif score < 15:
+        interpretation = f"""
+        **Score: {score:.1f}** - This patient is in the **early mild range** of Parkinson's symptoms.
+        Motor symptoms are present but minimal and typically do not significantly interfere with daily activities.
+        This is an excellent time for patient education about the disease, establishing a baseline for future
+        monitoring, and implementing lifestyle modifications (exercise, diet) that may slow progression.
+        """
+    elif score < 25:
+        interpretation = f"""
+        **Score: {score:.1f}** - This patient shows **mild Parkinson's symptoms** with noticeable but
+        manageable motor impairments. Daily activities can generally be performed independently, though some
+        tasks may take longer or require more effort. Regular monitoring every 3-6 months is recommended
+        to track progression and adjust treatment as needed.
+        """
+    elif score < 32:
+        interpretation = f"""
+        **Score: {score:.1f}** - This patient is experiencing **moderate Parkinson's symptoms** in the
+        lower-moderate range. Motor symptoms are affecting daily function and quality of life. The patient
+        may benefit from medication optimization, physical therapy, and occupational therapy to maintain
+        independence. Consider discussing adaptive strategies and assistive devices if needed.
+        """
+    elif score < 40:
+        interpretation = f"""
+        **Score: {score:.1f}** - This patient shows **significant moderate symptoms** approaching the
+        severe range. Motor impairments notably impact daily activities and independence. This score suggests
+        the need for comprehensive treatment review, possible medication adjustments, and evaluation for
+        advanced therapies. Multidisciplinary care coordination is strongly recommended.
+        """
+    else:
+        interpretation = f"""
+        **Score: {score:.1f}** - This patient has **severe Parkinson's symptoms** requiring comprehensive
+        care management. Significant motor impairments substantially limit daily activities and independence.
+        Immediate review of current treatment regimen is recommended. Consider evaluation for advanced therapies
+        (DBS, medication pump therapy), comprehensive rehabilitation services, and caregiver support resources.
+        """
+
+    st.info(interpretation)
+
+    st.markdown("---")
+
     # Clinical Interpretation
-    st.subheader("Clinical Interpretation")
+    st.subheader("General Clinical Guidelines")
 
     with st.expander("For Clinicians", expanded=True):
         st.markdown("""
@@ -366,6 +417,19 @@ def render_batch_page():
 
     st.title("Batch Assessment")
     st.caption("Upload CSV file with multiple patient measurements for batch processing")
+
+    st.info("""
+    **What is Batch Processing?**
+
+    Instead of entering patient data one at a time, upload a CSV file containing multiple patients'
+    voice measurements. The system will:
+    - Process all patients simultaneously
+    - Generate UPDRS predictions for each patient
+    - Provide summary statistics (average scores, severity distribution)
+    - Allow you to download all results as a CSV file
+
+    **Use Case:** Ideal for clinics managing multiple Parkinson's patients who need regular monitoring.
+    """)
 
     with st.expander("View Required CSV Format"):
         st.markdown("**Your CSV file must include these 12 columns (in any order):**")
