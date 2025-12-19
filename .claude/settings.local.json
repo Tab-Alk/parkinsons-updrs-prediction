@@ -19,7 +19,14 @@
       "Bash(git init:*)",
       "Bash(git config:*)",
       "Bash(git branch:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(brew install:*)",
+      "Bash(gh auth login:*)",
+      "Bash(gh auth status:*)",
+      "Bash(open:*)"
     ],
     "deny": [],
     "ask": []
