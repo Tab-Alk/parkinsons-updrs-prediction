@@ -1,0 +1,796 @@
+"""
+Parkinson's Disease Assessment Tool
+===================================
+
+Apple-inspired clinical tool for UPDRS prediction using voice biomarkers.
+For clinicians, patients, and families.
+"""
+
+import streamlit as st
+import pandas as pd
+import json
+import sys
+from pathlib import Path
+
+# Add parent directory to path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from app.model import UPDRSPredictor
+from app.preprocessing import create_sample_input
+
+# Page configuration
+st.set_page_config(
+    page_title="Parkinson's Assessment Tool",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# Modern Design System
+st.markdown("""
+<style>
+    /* Base Typography */
+    html, body, [class*="css"] {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Inter', sans-serif;
+        line-height: 1.6;
+    }
+    
+    /* Base font size */
+    body {
+        font-size: 18px;
+        color: #1D1D1F;
+    }
+    
+    /* Headings */
+    h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #000000;
+        margin-bottom: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1D1D1F;
+        margin: 2.5rem 0 1.5rem;
+    }
+    
+    h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1D1D1F;
+        margin: 2rem 0 1rem;
+    }
+    
+    /* Paragraphs */
+    p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+        color: #333333;
+    }
+    
+    /* Links */
+    a {
+        color: #0071E3;
+        text-decoration: none;
+    }
+    
+    a:hover {
+        text-decoration: underline;
+    }
+    
+    /* Cards */
+    .content-card {
+        background: #FFFFFF;
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 2rem 0;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #E5E5EA;
+    }
+    
+    /* Buttons */
+    .stButton>button {
+        background-color: #0071E3;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .stButton>button:hover {
+        background-color: #0077ED;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 113, 227, 0.2);
+    }
+    
+    /* Form elements */
+    .stTextInput>div>div>input {
+        font-size: 1rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: 1px solid #D2D2D7;
+    }
+    
+    /* Custom classes */
+    .highlight {
+        background: linear-gradient(120deg, #E1F0FF 0%, #F0F7FF 100%);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-weight: 500;
+    }
+    
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .feature-card {
+        background: #F8F8F8;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border-left: 4px solid #0071E3;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        body {
+            font-size: 16px;
+        }
+        
+        h1 {
+            font-size: 2rem;
+        }
+        
+        h2 {
+            font-size: 1.75rem;
+        }
+    }
+
+    /* Apple typography */
+    h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #1D1D1F;
+        letter-spacing: -0.02em;
+        margin-bottom: 1rem;
+        line-height: 1.1;
+    }
+
+    h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #007AFF;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        border-left: 4px solid #007AFF;
+        padding-left: 1rem;
+    }
+
+    h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1D1D1F;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #1D1D1F;
+    }
+
+    /* iOS Blue buttons */
+    .stButton>button {
+        background-color: #007AFF;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 2rem;
+        font-size: 1.05rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0,122,255,0.2);
+    }
+
+    .stButton>button:hover {
+        background-color: #0051D5;
+        box-shadow: 0 4px 16px rgba(0,122,255,0.3);
+        transform: translateY(-1px);
+    }
+
+    /* Tabs - Clean Apple style */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2rem;
+        background-color: transparent;
+        border-bottom: 1px solid #E5E5EA;
+        padding-bottom: 0;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        background-color: transparent;
+        border: none;
+        padding: 1rem 0rem;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #86868B;
+        border-bottom: 2px solid transparent;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background-color: transparent;
+        color: #007AFF;
+        border-bottom: 2px solid #007AFF;
+    }
+
+    /* Input fields - Apple style */
+    .stNumberInput>div>div>input,
+    .stSelectbox>div>div {
+        border-radius: 8px;
+        border: 1px solid #D1D1D6;
+        background-color: #FFFFFF;
+        font-size: 1rem;
+        padding: 0.5rem;
+    }
+
+    .stNumberInput>div>div>input:focus,
+    .stSelectbox>div>div:focus {
+        border-color: #007AFF;
+        box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
+    }
+
+    /* Content cards */
+    .content-card {
+        background-color: #F5F5F7;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .result-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E5E5EA;
+        border-radius: 16px;
+        padding: 3rem;
+        margin: 2rem 0;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    /* Severity badges - Apple style */
+    .severity-badge {
+        display: inline-block;
+        padding: 0.6rem 1.5rem;
+        border-radius: 100px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin: 1rem 0;
+    }
+
+    .severity-mild {
+        background-color: #34C759;
+        color: #FFFFFF;
+        box-shadow: 0 2px 8px rgba(52, 199, 89, 0.3);
+    }
+
+    .severity-moderate {
+        background-color: #FF9500;
+        color: #FFFFFF;
+        box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
+    }
+
+    .severity-severe {
+        background-color: #FF3B30;
+        color: #FFFFFF;
+        box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3);
+    }
+
+    /* Scale visual */
+    .scale-container {
+        background: linear-gradient(90deg, #34C759 0%, #FF9500 50%, #FF3B30 100%);
+        height: 40px;
+        border-radius: 20px;
+        margin: 1.5rem 0;
+        position: relative;
+        box-shadow: 0 3px 12px rgba(0,122,255,0.2);
+    }
+
+    .scale-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        font-size: 0.95rem;
+        color: #86868B;
+    }
+
+    /* Clean spacing */
+    .stMarkdown {
+        margin-bottom: 1.5rem;
+    }
+
+    /* Remove default Streamlit styling */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    .stDeployButton {display: none;}
+
+    /* Better form spacing */
+    .stForm {
+        background-color: #F5F5F7;
+        padding: 2rem;
+        border-radius: 16px;
+    }
+
+    /* Metrics - Apple style */
+    .stMetric {
+        background-color: #F5F5F7;
+        padding: 1.5rem;
+        border-radius: 12px;
+    }
+
+    .stMetric label {
+        font-size: 1rem;
+        color: #86868B;
+    }
+
+    .stMetric [data-testid="stMetricValue"] {
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: #1D1D1F;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+@st.cache_resource
+def load_predictor():
+    """Load the UPDRS predictor."""
+    try:
+        predictor = UPDRSPredictor()
+        return predictor, None
+    except FileNotFoundError as e:
+        return None, str(e)
+    except Exception as e:
+        return None, f"Error loading model: {str(e)}"
+
+
+@st.cache_data
+def load_sample_inputs():
+    """Load sample inputs from JSON."""
+    sample_file = Path("data/sample_inputs.json")
+    if sample_file.exists():
+        with open(sample_file, 'r') as f:
+            return json.load(f)
+    return {}
+
+
+def render_home_page():
+    """Render the HOME page - educational content about Parkinson's."""
+    
+    # Hero Section
+    st.markdown("""
+    <div style="margin-bottom: 3rem;">
+        <h1>Parkinson's Disease Assessment</h1>
+        <p style="font-size: 1.4rem; color: #6E6E73; margin-top: -1rem; margin-bottom: 2.5rem;">
+            Advanced voice biomarker analysis for precise monitoring of Parkinson's disease progression
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Understanding Parkinson's Section
+    st.markdown("""
+    <div class="content-card">
+        <h2>Understanding Parkinson's Disease</h2>
+        <p>
+            Parkinson's disease is a progressive neurological disorder that affects movement control, 
+            caused by the gradual breakdown of dopamine-producing neurons in the brain. This condition 
+            affects approximately 1% of individuals over 60 years old, with symptoms typically developing 
+            gradually over years.
+        </p>
+        
+        <h3>Key Characteristics</h3>
+        <p>
+            The disease manifests through several hallmark symptoms that typically begin gradually and 
+            progress over time. One of the most recognizable symptoms is <span class="highlight">tremors</span>, 
+            often starting in the hands or fingers and appearing as a "pill-rolling" motion. 
+            <span class="highlight">Bradykinesia</span> (slowed movement) makes simple tasks difficult and 
+            time-consuming, while <span class="highlight">muscle rigidity</span> causes stiffness and can limit 
+            the range of motion.
+        </p>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>Motor Symptoms</h4>
+                <p>• Tremors at rest<br>
+                • Muscle stiffness<br>
+                • Slowed movement (bradykinesia)<br>
+                • Impaired posture and balance<br>
+                • Loss of automatic movements</p>
+            </div>
+            <div class="feature-card">
+                <h4>Non-Motor Symptoms</h4>
+                <p>• Sleep disturbances<br>
+                • Loss of smell<br>
+                • Cognitive changes<br>
+                • Mood disorders<br>
+                • Autonomic dysfunction</p>
+            </div>
+        </div>
+        
+        <p>
+            Early detection and ongoing monitoring are crucial for managing Parkinson's disease effectively. 
+            Our assessment tool provides a non-invasive method to track disease progression through 
+            voice analysis, offering valuable insights for both patients and healthcare providers.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Voice Analysis Section
+    st.markdown("""
+    <div class="content-card">
+        <h2>Voice Analysis in Parkinson's Assessment</h2>
+        <p>
+            Research has demonstrated that Parkinson's disease affects speech production in predictable ways, 
+            often before other motor symptoms become apparent. Our voice analysis technology captures these 
+            subtle changes, providing objective measurements that correlate with disease progression.
+        </p>
+        
+        <h3>How It Works</h3>
+        <p>
+            The assessment analyzes various acoustic features of the voice, including:
+        </p>
+        <ul style="margin-left: 2rem; margin-bottom: 1.5rem;">
+            <li><strong>Jitter:</strong> Measures frequency variations in vocal cord vibrations</li>
+            <li><strong>Shimmer:</strong> Quantifies amplitude variations in speech</li>
+            <li><strong>Harmonic-to-Noise Ratio (HNR):</strong> Assesses voice quality</li>
+            <li><strong>Fundamental Frequency (F0):</strong> Tracks changes in pitch</li>
+        </ul>
+        
+        <div style="background: #F8F8F8; padding: 1.5rem; border-radius: 12px; margin: 1.5rem 0;">
+            <h4 style="margin-top: 0;">Clinical Benefits</h4>
+            <p style="margin-bottom: 0.5rem;">• <strong>Early Detection:</strong> Identify subtle changes before they're clinically apparent</p>
+            <p style="margin-bottom: 0.5rem;">• <strong>Objective Measurement:</strong> Reduce subjectivity in symptom assessment</p>
+            <p style="margin-bottom: 0.5rem;">• <strong>Remote Monitoring:</strong> Enable frequent assessments from home</p>
+            <p style="margin-bottom: 0;">• <strong>Treatment Tracking:</strong> Monitor response to medication and therapy</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # UPDRS Scale Explanation
+    st.markdown("""
+    <div class="content-card">
+        <h2>Understanding the UPDRS Scale</h2>
+        <p>
+            The <strong>Unified Parkinson's Disease Rating Scale (UPDRS)</strong> is the gold standard 
+            for assessing Parkinson's disease severity. Our tool predicts the motor examination 
+            section of the UPDRS, which evaluates key motor functions affected by Parkinson's.
+        </p>
+        
+        <h3>UPDRS Score Ranges</h3>
+        <div style="display: flex; margin: 2rem 0; background: #F5F5F7; border-radius: 12px; overflow: hidden;">
+            <div style="flex: 1; padding: 1.5rem; background: #E8F4FF; border-right: 1px solid #D1E6FF;">
+                <h4 style="margin-top: 0; color: #0071E3;">Mild</h4>
+                <p style="font-size: 2rem; font-weight: 700; margin: 0.5rem 0; color: #0071E3;">7-25</p>
+                <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Early-stage symptoms with minimal functional impact</p>
+            </div>
+            <div style="flex: 1; padding: 1.5rem; background: #D4E9FF; border-right: 1px solid #B3D4FF;">
+                <h4 style="margin-top: 0; color: #0071E3;">Moderate</h4>
+                <p style="font-size: 2rem; font-weight: 700; margin: 0.5rem 0; color: #0071E3;">25-40</p>
+                <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Noticeable symptoms affecting daily activities</p>
+            </div>
+            <div style="flex: 1; padding: 1.5rem; background: #B3D4FF;">
+                <h4 style="margin-top: 0; color: #0051A8;">Severe</h4>
+                <p style="font-size: 2rem; font-weight: 700; margin: 0.5rem 0; color: #0051A8;">40+</p>
+                <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Advanced symptoms requiring significant assistance</p>
+            </div>
+        </div>
+        
+        <p>
+            The UPDRS evaluates various aspects of motor function, including speech, facial expression, 
+            tremor, rigidity, finger taps, hand movements, rapid alternating movements, leg agility, 
+            arising from chair, posture, gait, postural stability, and body bradykinesia.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # About the Tool
+    st.markdown("""
+    <div class="content-card">
+        <h2>About This Assessment Tool</h2>
+        <p>
+            Our Parkinson's Disease Assessment Tool leverages advanced machine learning algorithms to 
+            analyze voice patterns and predict UPDRS scores with high accuracy. The system was developed 
+            using a comprehensive dataset of voice recordings from Parkinson's patients across different 
+            stages of the disease.
+        </p>
+        
+        <h3>Intended Users</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 1.5rem 0;">
+            <div style="background: #F8F8F8; padding: 1.5rem; border-radius: 12px;">
+                <h4 style="margin-top: 0;">For Healthcare Providers</h4>
+                <p>• Objective assessment of disease progression<br>
+                • Treatment effectiveness monitoring<br>
+                • Remote patient monitoring capabilities</p>
+            </div>
+            <div style="background: #F8F8F8; padding: 1.5rem; border-radius: 12px;">
+                <h4 style="margin-top: 0;">For Patients & Caregivers</h4>
+                <p>• Track symptoms over time<br>
+                • Share progress with healthcare team<br>
+                • Better understand disease progression</p>
+            </div>
+        </div>
+        
+        <div style="background: #F0F7FF; padding: 1.5rem; border-radius: 12px; margin-top: 2rem;">
+            <h3 style="margin-top: 0; color: #0066CC;">Getting Started</h3>
+            <p>
+                Ready to assess Parkinson's symptoms? Click the "Begin Assessment" button in the sidebar 
+                to start the voice analysis. The process is simple, non-invasive, and takes just a few minutes.
+            </p>
+            <p style="margin-bottom: 0;">
+                <strong>Note:</strong> This tool is intended for informational purposes only and should 
+                not replace professional medical advice, diagnosis, or treatment.
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_assessment_page():
+    """Render the ASSESSMENT page - input form and results."""
+
+    st.title("Clinical Assessment")
+
+    st.markdown("""
+    <p style="font-size: 1.2rem; color: #86868B; margin-top: 0.5rem; margin-bottom: 1.5rem;">
+    Enter voice analysis measurements to calculate UPDRS severity score
+    </p>
+    """, unsafe_allow_html=True)
+
+    # Note about measurements
+    st.info("""
+    **Note for clinicians:** These measurements are obtained from specialized voice analysis equipment.
+    14 acoustic features are required for accurate prediction. While this may seem like many inputs,
+    each measurement contributes to the model's high accuracy (Test R² = 0.80, MAE = 3.8 points).
+    """)
+
+    # Input form
+    with st.form("voice_measurement_form"):
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("#### Patient Demographics")
+            age = st.number_input("Age (years)", min_value=30, max_value=90, value=65,
+                                help="Patient's age in years", key="age_input")
+            sex = st.radio("Sex", options=[0, 1],
+                         format_func=lambda x: "Male" if x == 0 else "Female",
+                         horizontal=True,
+                         help="0 = Male, 1 = Female", key="sex_input")
+
+            st.markdown("#### Temporal")
+            test_time = st.number_input("Days Since Baseline", min_value=-5.0, max_value=250.0,
+                                      value=92.0, help="Days since initial measurement", key="test_time_input")
+
+            st.markdown("#### Jitter Measurements")
+            st.caption("Frequency variation indicators")
+            jitter_pct = st.number_input("Jitter (%)", min_value=0.0001, max_value=0.15,
+                                        value=0.0049, format="%.6f", key="jitter_pct_input")
+            jitter_abs = st.number_input("Jitter (Absolute)", min_value=0.000001, max_value=0.0005,
+                                        value=0.000035, format="%.6f", key="jitter_abs_input")
+
+            st.markdown("#### Shimmer Measurements")
+            st.caption("Amplitude variation indicators")
+            shimmer = st.number_input("Shimmer", min_value=0.005, max_value=0.3,
+                                    value=0.0253, format="%.4f", key="shimmer_input")
+            shimmer_apq11 = st.number_input("Shimmer APQ11", min_value=0.002, max_value=0.3,
+                                          value=0.0227, format="%.4f", key="shimmer_apq11_input")
+
+        with col2:
+            st.markdown("#### Voice Quality")
+            st.caption("Harmonic-to-noise ratios")
+            nhr = st.number_input("NHR (Noise-to-Harmonics)", min_value=0.0001, max_value=0.8,
+                                value=0.0184, format="%.4f", key="nhr_input")
+            hnr = st.number_input("HNR (Harmonics-to-Noise)", min_value=1.0, max_value=40.0,
+                                value=21.92, format="%.2f", key="hnr_input")
+
+            st.markdown("#### Nonlinear Complexity")
+            st.caption("Dynamic complexity measures")
+            rpde = st.number_input("RPDE (Recurrence Period Density Entropy)",
+                                 min_value=0.1, max_value=1.0, value=0.5422, format="%.4f", key="rpde_input")
+            dfa = st.number_input("DFA (Detrended Fluctuation Analysis)",
+                                min_value=0.5, max_value=0.9, value=0.6436, format="%.4f", key="dfa_input")
+            ppe = st.number_input("PPE (Pitch Period Entropy)",
+                              min_value=0.02, max_value=0.8, value=0.2055, format="%.4f", key="ppe_input")
+
+        submitted = st.form_submit_button("Calculate UPDRS Score", use_container_width=True)
+
+    # Process submission
+    if submitted:
+        input_data = {
+            'age': age, 'sex': sex, 'test_time': test_time,
+            'Jitter(%)': jitter_pct, 'Jitter(Abs)': jitter_abs,
+            'Shimmer': shimmer, 'Shimmer:APQ11': shimmer_apq11,
+            'NHR': nhr, 'HNR': hnr,
+            'RPDE': rpde, 'DFA': dfa, 'PPE': ppe
+        }
+
+        predictor, error = load_predictor()
+        if error:
+            st.error(f"Error: {error}")
+            return
+
+        with st.spinner("Calculating..."):
+            result = predictor.predict(input_data)
+
+        if result['error']:
+            st.error(result['error'])
+            if result['validation'] and not result['validation'].is_valid:
+                st.error(str(result['validation']))
+        else:
+            display_results(result)
+
+
+def display_results(result):
+    """Display prediction results in Apple style."""
+
+    st.markdown("---")
+    st.markdown("### Assessment Results")
+
+    # Main result card
+    severity_class = f"severity-{result['severity'].lower()}"
+
+    st.markdown(f"""
+    <div class="result-card">
+        <div style="text-align: center;">
+            <h1 style="font-size: 4rem; margin: 0; color: #007AFF;">{result['prediction']:.1f}</h1>
+            <p style="font-size: 1.2rem; color: #86868B; margin-top: 0.5rem;">UPDRS Score</p>
+            <div class="severity-badge {severity_class}" style="margin-top: 2rem;">
+                {result['severity']} Severity
+            </div>
+        </div>
+
+        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #E5E5EA;">
+            <p style="font-size: 1.15rem; line-height: 1.7; color: #1D1D1F;">
+                {result['confidence']}
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Clinical Interpretation
+    st.markdown("""
+    <div class="content-card">
+        <h3 style="margin-top: 0;">Clinical Interpretation</h3>
+        <p><strong>For Clinicians:</strong></p>
+        <ul style="font-size: 1.05rem; line-height: 1.7; color: #1D1D1F;">
+            <li><strong>Mild (7-25):</strong> Patient shows early-stage symptoms. Consider baseline assessment,
+            patient education, and lifestyle modifications. Monitor progression with regular follow-ups.</li>
+            <li><strong>Moderate (25-40):</strong> Patient exhibits noticeable symptoms affecting daily function.
+            Evaluate current treatment effectiveness, consider medication adjustments, and assess need for
+            supportive therapies.</li>
+            <li><strong>Severe (40+):</strong> Advanced disease requiring comprehensive care coordination.
+            Review medication regimen, consider advanced therapies, arrange multidisciplinary support.</li>
+        </ul>
+
+        <p style="margin-top: 2rem;"><strong>For Patients and Families:</strong></p>
+        <p style="font-size: 1.05rem; line-height: 1.7; color: #1D1D1F;">
+            This score helps your healthcare team understand how Parkinson's is affecting you right now.
+            The number itself is less important than tracking how it changes over time. Regular monitoring
+            helps your doctor make the best decisions about your care. If you have questions about what
+            this score means for you personally, please discuss with your neurologist or care team.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Validation warnings if any
+    if result['validation']:
+        if result['validation'].warnings:
+            with st.expander("Clinical Warnings"):
+                for warning in result['validation'].warnings:
+                    st.warning(warning)
+
+
+def render_batch_page():
+    """Render the BATCH UPLOAD page."""
+
+    st.title("Batch Assessment")
+
+    st.markdown("""
+    <p style="font-size: 1.2rem; color: #86868B; margin-top: 0.5rem; margin-bottom: 1.5rem;">
+    Upload CSV file with multiple patient measurements for batch processing
+    </p>
+    """, unsafe_allow_html=True)
+
+    with st.expander("View Required CSV Format"):
+        st.markdown("**Your CSV file must include these 12 columns (in any order):**")
+        st.markdown("age, sex, test_time, Jitter(%), Jitter(Abs), Shimmer, Shimmer:APQ11, NHR, HNR, RPDE, DFA, PPE")
+
+        st.markdown("**Example CSV format:**")
+        st.code("""age,sex,test_time,Jitter(%),Jitter(Abs),Shimmer,Shimmer:APQ11,NHR,HNR,RPDE,DFA,PPE
+65,0,92.0,0.0049,0.000035,0.0253,0.0227,0.0184,21.92,0.5422,0.6436,0.2055
+78,1,150.0,0.012,0.00008,0.065,0.055,0.045,18.5,0.62,0.72,0.35""", language="csv")
+
+    uploaded_file = st.file_uploader("Choose CSV File", type=['csv'])
+
+    if uploaded_file is not None:
+        try:
+            df = pd.read_csv(uploaded_file)
+            st.success(f"File uploaded successfully: {len(df)} records found")
+            st.dataframe(df.head(10), use_container_width=True)
+
+            if st.button("Process All Records", use_container_width=True):
+                predictor, error = load_predictor()
+                if error:
+                    st.error(f"Error: {error}")
+                    return
+
+                with st.spinner("Processing batch..."):
+                    results_df = predictor.predict_batch(df)
+
+                st.success(f"Batch processing complete: {len(results_df)} records processed")
+
+                # Summary metrics
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("Average UPDRS", f"{results_df['prediction'].mean():.1f}")
+                with col2:
+                    st.metric("Mild Cases", (results_df['severity'] == 'Mild').sum())
+                with col3:
+                    st.metric("Moderate Cases", (results_df['severity'] == 'Moderate').sum())
+                with col4:
+                    st.metric("Severe Cases", (results_df['severity'] == 'Severe').sum())
+
+                st.markdown("#### Detailed Results")
+                st.dataframe(results_df, use_container_width=True)
+
+                # Download
+                csv = results_df.to_csv(index=False)
+                st.download_button(
+                    label="Download Results (CSV)",
+                    data=csv,
+                    file_name="updrs_predictions.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+
+        except Exception as e:
+            st.error(f"Error reading file: {str(e)}")
+
+
+def main():
+    """Main application."""
+
+    # Check if predictor loads (for setup errors)
+    predictor, error = load_predictor()
+    if error:
+        st.error(f"Setup Error: {error}")
+        st.info("""
+        **Required Setup:**
+        1. Run `python save_model.py` to generate model files
+        2. Ensure these files exist:
+           - models/random_forest_model.pkl
+           - models/scaler.pkl
+           - models/feature_config.json
+        3. Refresh this page
+        """)
+        return
+
+    # 3-Tab Navigation
+    tab1, tab2, tab3 = st.tabs(["Home", "Assessment", "Batch Upload"])
+
+    with tab1:
+        render_home_page()
+
+    with tab2:
+        render_assessment_page()
+
+    with tab3:
+        render_batch_page()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,102 @@
+{
+  "sample_1_young_mild": {
+    "description": "Young Patient, Mild Symptoms",
+    "input": {
+      "age": 45,
+      "sex": 0,
+      "test_time": 30.5,
+      "Jitter(%)": 0.004,
+      "Jitter(Abs)": 0.00003,
+      "Shimmer": 0.020,
+      "Shimmer:APQ11": 0.018,
+      "NHR": 0.015,
+      "HNR": 24.0,
+      "RPDE": 0.45,
+      "DFA": 0.65,
+      "PPE": 0.18
+    },
+    "expected_range": [15, 25],
+    "expected_severity": "Mild",
+    "notes": "Younger patient with good voice quality and early-stage symptoms"
+  },
+  "sample_2_elderly_severe": {
+    "description": "Elderly Patient, Severe Symptoms",
+    "input": {
+      "age": 78,
+      "sex": 1,
+      "test_time": 150.0,
+      "Jitter(%)": 0.012,
+      "Jitter(Abs)": 0.00008,
+      "Shimmer": 0.065,
+      "Shimmer:APQ11": 0.055,
+      "NHR": 0.045,
+      "HNR": 18.5,
+      "RPDE": 0.62,
+      "DFA": 0.72,
+      "PPE": 0.35
+    },
+    "expected_range": [35, 48],
+    "expected_severity": "Severe",
+    "notes": "Elderly patient with significant voice impairment and advanced disease"
+  },
+  "sample_3_average": {
+    "description": "Average Patient (Dataset Mean)",
+    "input": {
+      "age": 65,
+      "sex": 0,
+      "test_time": 92.0,
+      "Jitter(%)": 0.0049,
+      "Jitter(Abs)": 0.000035,
+      "Shimmer": 0.0253,
+      "Shimmer:APQ11": 0.0227,
+      "NHR": 0.0184,
+      "HNR": 21.92,
+      "RPDE": 0.5422,
+      "DFA": 0.6436,
+      "PPE": 0.2055
+    },
+    "expected_range": [26, 32],
+    "expected_severity": "Moderate",
+    "notes": "Patient with typical/average characteristics from the dataset"
+  },
+  "sample_4_female_moderate": {
+    "description": "Female Patient, Moderate Symptoms",
+    "input": {
+      "age": 62,
+      "sex": 1,
+      "test_time": 100.0,
+      "Jitter(%)": 0.0065,
+      "Jitter(Abs)": 0.00005,
+      "Shimmer": 0.035,
+      "Shimmer:APQ11": 0.030,
+      "NHR": 0.025,
+      "HNR": 20.5,
+      "RPDE": 0.58,
+      "DFA": 0.67,
+      "PPE": 0.25
+    },
+    "expected_range": [28, 35],
+    "expected_severity": "Moderate",
+    "notes": "Female patient with moderate progression and typical voice deterioration"
+  },
+  "sample_5_early_stage": {
+    "description": "Early Stage, Recent Diagnosis",
+    "input": {
+      "age": 58,
+      "sex": 0,
+      "test_time": 10.0,
+      "Jitter(%)": 0.0035,
+      "Jitter(Abs)": 0.000025,
+      "Shimmer": 0.018,
+      "Shimmer:APQ11": 0.015,
+      "NHR": 0.012,
+      "HNR": 25.5,
+      "RPDE": 0.48,
+      "DFA": 0.62,
+      "PPE": 0.15
+    },
+    "expected_range": [18, 26],
+    "expected_severity": "Mild",
+    "notes": "Recently diagnosed patient with minimal voice impairment and early-stage disease"
+  }
+}

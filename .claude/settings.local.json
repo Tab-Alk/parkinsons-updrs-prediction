@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(mkdir:*)",
+      "Bash(python save_model.py:*)",
+      "Bash(timeout 10 streamlit run:*)",
+      "Bash(pkill:*)",
+      "Bash(pip3 install:*)",
+      "Bash(streamlit run:*)",
+      "Bash(source venv/bin/activate)",
+      "Bash(streamlit:*)",
+      "Bash(sort:*)",
+      "Bash(test:*)",
+      "Bash(find:*)",
+      "Bash(pytest:*)",
+      "Bash(git init:*)",
+      "Bash(git config:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

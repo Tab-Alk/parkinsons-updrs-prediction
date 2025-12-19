@@ -1,0 +1,137 @@
+{
+  "feature_names": [
+    "age",
+    "sex",
+    "test_time",
+    "Jitter(%)",
+    "Jitter(Abs)",
+    "Shimmer",
+    "Shimmer:APQ11",
+    "NHR",
+    "HNR",
+    "RPDE",
+    "DFA",
+    "PPE",
+    "voice_quality_ratio",
+    "test_time_squared"
+  ],
+  "feature_count": 14,
+  "model_type": "RandomForestRegressor",
+  "model_parameters": {
+    "max_depth": null,
+    "max_features": "sqrt",
+    "min_samples_leaf": 1,
+    "min_samples_split": 2,
+    "n_estimators": 100,
+    "random_state": 42
+  },
+  "performance_metrics": {
+    "test_r2": 0.7957532160599237,
+    "test_mae": 3.662494224049914,
+    "test_rmse": 4.793092361581327
+  },
+  "validation_ranges": {
+    "age": {
+      "min": 30,
+      "max": 90,
+      "dataset_min": 36,
+      "dataset_max": 85
+    },
+    "sex": {
+      "min": 0,
+      "max": 1
+    },
+    "test_time": {
+      "min": -5,
+      "max": 250,
+      "dataset_min": -4.26,
+      "dataset_max": 215.49
+    },
+    "Jitter(%)": {
+      "min": 0.0001,
+      "max": 0.15,
+      "dataset_min": 0.00083,
+      "dataset_max": 0.09999
+    },
+    "Jitter(Abs)": {
+      "min": 1e-06,
+      "max": 0.0005,
+      "dataset_min": 2e-06,
+      "dataset_max": 0.000446
+    },
+    "Shimmer": {
+      "min": 0.005,
+      "max": 0.3,
+      "dataset_min": 0.0095,
+      "dataset_max": 0.2197
+    },
+    "Shimmer:APQ11": {
+      "min": 0.002,
+      "max": 0.3,
+      "dataset_min": 0.00249,
+      "dataset_max": 0.27546
+    },
+    "NHR": {
+      "min": 0.0001,
+      "max": 0.8,
+      "dataset_min": 0.000286,
+      "dataset_max": 0.74826
+    },
+    "HNR": {
+      "min": 1,
+      "max": 40,
+      "dataset_min": 1.659,
+      "dataset_max": 37.875
+    },
+    "RPDE": {
+      "min": 0.1,
+      "max": 1.0,
+      "dataset_min": 0.15102,
+      "dataset_max": 0.96608
+    },
+    "DFA": {
+      "min": 0.5,
+      "max": 0.9,
+      "dataset_min": 0.51404,
+      "dataset_max": 0.8656
+    },
+    "PPE": {
+      "min": 0.02,
+      "max": 0.8,
+      "dataset_min": 0.021983,
+      "dataset_max": 0.73173
+    }
+  },
+  "feature_descriptions": {
+    "age": "Patient age in years",
+    "sex": "Gender (0=male, 1=female)",
+    "test_time": "Days since baseline measurement",
+    "Jitter(%)": "Frequency variation in voice (%)",
+    "Jitter(Abs)": "Absolute jitter measure",
+    "Shimmer": "Amplitude variation in voice",
+    "Shimmer:APQ11": "Eleven-point amplitude perturbation quotient",
+    "NHR": "Noise-to-harmonics ratio",
+    "HNR": "Harmonics-to-noise ratio",
+    "RPDE": "Recurrence period density entropy (nonlinear complexity)",
+    "DFA": "Detrended fluctuation analysis (fractal scaling exponent)",
+    "PPE": "Pitch period entropy",
+    "voice_quality_ratio": "Engineered feature: HNR / (NHR + 0.001)",
+    "test_time_squared": "Engineered feature: test_time\u00b2"
+  },
+  "feature_importance": {
+    "age": 0.33038284690232256,
+    "sex": 0.03205683529705002,
+    "test_time": 0.04396436499948846,
+    "Jitter(%)": 0.036922744817623775,
+    "Jitter(Abs)": 0.06199868715627929,
+    "Shimmer": 0.044278286562142666,
+    "Shimmer:APQ11": 0.03972671578297745,
+    "NHR": 0.03995745257010959,
+    "HNR": 0.06417531983930198,
+    "RPDE": 0.05717857186334181,
+    "DFA": 0.11098614781553168,
+    "PPE": 0.056110148494841645,
+    "voice_quality_ratio": 0.04019899147222911,
+    "test_time_squared": 0.04206288642676008
+  }
+}
