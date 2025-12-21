@@ -287,10 +287,28 @@ def render_assessment_page():
         with st.spinner("Calculating..."):
             result = predictor.predict(input_data)
 
+        # Display validation feedback
+        if result['validation']:
+            validation = result['validation']
+
+            # Show errors (red)
+            if validation.errors:
+                for error in validation.errors:
+                    st.error(f"❌ {error}")
+
+            # Show warnings (yellow)
+            if validation.warnings:
+                for warning in validation.warnings:
+                    st.warning(f"⚠️ {warning}")
+
+            # Show info messages (blue)
+            if validation.info:
+                for info in validation.info:
+                    st.info(f"ℹ️ {info}")
+
+        # Show prediction error if exists
         if result['error']:
             st.error(result['error'])
-            if result['validation'] and not result['validation'].is_valid:
-                st.error(str(result['validation']))
         else:
             # Store result in session state for persistence
             st.session_state.prediction_result = result
@@ -458,6 +476,15 @@ def render_batch_page():
                     results_df = predictor.predict_batch(df)
 
                 st.success(f"Batch processing complete: {len(results_df)} records processed")
+
+                # Check for validation issues
+                error_count = results_df['has_errors'].sum()
+                warning_count = sum(len(w) for w in results_df['has_warnings'])
+
+                if error_count > 0:
+                    st.error(f"⚠️ {error_count} records had validation errors and were not processed.")
+                if warning_count > 0:
+                    st.warning(f"⚠️ {warning_count} validation warnings detected across records. Review results carefully.")
 
                 # Summary metrics
                 col1, col2, col3, col4 = st.columns(4)

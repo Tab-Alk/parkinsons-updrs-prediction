@@ -187,6 +187,53 @@ All 12 raw features must be provided (2 additional features are auto-generated):
 
 Additional test cases available in `data/sample_inputs.json` covering mild (15-25), moderate (26-40), and severe (40+) ranges.
 
+## Error Handling & Input Validation
+
+The application implements a **three-tier validation system** that ensures data quality and provides helpful feedback:
+
+**Tier 1: Hard Errors (Prevent Prediction)**
+- Missing required features
+- Invalid data types (non-numeric values)
+- Values outside acceptable ranges
+
+**Tier 2: Warnings (Allow Prediction with Caution)**
+- Unusual patient ages (< 40 or > 85 years)
+- Voice measurements in extreme percentiles
+- Logically inconsistent feature combinations
+
+**Tier 3: Info Messages (Contextual Feedback)**
+- Measurements deviating significantly from dataset averages
+- Additional context about input values
+
+**Example Error Messages:**
+
+```python
+# Missing feature
+❌ Missing required features: age, sex
+
+# Invalid data type
+❌ Feature 'age' must be numeric, got: string
+
+# Out of range
+❌ Feature 'age' value 100 exceeds maximum threshold 90
+
+# Invalid sex value
+❌ Feature 'sex' must be 0 (male) or 1 (female), got: 2
+
+# Warning examples
+⚠️ Age 35 is younger than typical Parkinson's onset age (usually 50+)
+⚠️ Feature 'Jitter(%)' value 0.025 is higher than 95% of training data
+⚠️ HNR value 8 is very low, indicating significant voice quality issues
+
+# Info examples
+ℹ️ 3 features deviate significantly from dataset averages
+```
+
+**Implementation:**
+- [validators.py](app/validators.py) - Comprehensive validation logic
+- [model.py](app/model.py#L116-L136) - Validation before every prediction
+- [streamlit_app.py](app/streamlit_app.py#L290-L307) - User-friendly error display
+
 ## Testing
 
 **Run all tests:**
