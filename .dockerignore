@@ -1,0 +1,53 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+
+# Tests (optional - include if you want to run tests in container)
+tests/
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Notebooks
+notebooks/
+*.ipynb
+datasets/
+
+# Claude artifacts
+.claude/
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# Images
+images/
+
+# Model files will be generated during build
+models/*.pkl
+models/*.json
