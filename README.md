@@ -2,6 +2,12 @@
 
 A machine learning web application for predicting Parkinson's disease severity (UPDRS scores) from voice biomarker measurements.
 
+## Live Demo
+
+**Cloud Deployment:** [https://parkinsons-updrs-prediction-507990539416.us-central1.run.app](https://parkinsons-updrs-prediction-507990539416.us-central1.run.app)
+
+The application is deployed on **Google Cloud Run**, providing scalable, serverless infrastructure with automatic scaling and high availability. The deployment uses Docker containerization and is accessible worldwide.
+
 ## Overview
 
 **Understanding Parkinson's Disease**
@@ -108,7 +114,7 @@ python save_model.py
 
 The `save_model.py` script trains the Random Forest model and saves artifacts to `models/` directory (takes 2-3 minutes).
 
-**Running the Application:**
+**Running Locally:**
 ```bash
 streamlit run app/streamlit_app.py
 ```
@@ -117,6 +123,20 @@ The application opens at `http://localhost:8501` with two input methods:
 
 1. **Manual Input** - Interactive form for single patient assessment with all 12 voice measurements
 2. **Batch Upload** - CSV file upload for processing multiple patients simultaneously
+
+**Cloud Deployment (Google Cloud Run):**
+
+The application is deployed on Google Cloud Run using Docker containerization:
+
+- **Platform:** Google Cloud Run (serverless, auto-scaling)
+- **Region:** us-central1 (Iowa)
+- **Container:** Python 3.9 with Streamlit, scikit-learn, pandas, numpy
+- **Port:** 8080 (configured for Cloud Run compatibility)
+- **Scaling:** Auto-scales from 0 to 1 instances based on traffic (free tier optimized)
+- **Build:** Automated from GitHub repository using Cloud Build
+- **Public Access:** Unauthenticated access enabled for public demo
+
+The Dockerfile handles model training during build (`python save_model.py`) to ensure the trained Random Forest model is available in the container.
 
 **CSV Format for Batch Processing:**
 ```csv
@@ -207,6 +227,8 @@ parkinsons-updrs-prediction/
 │   └── test_validators.py
 ├── save_model.py
 ├── requirements.txt
+├── Dockerfile                 # Docker containerization config
+├── .dockerignore              # Docker build optimization
 └── README.md
 ```
 
